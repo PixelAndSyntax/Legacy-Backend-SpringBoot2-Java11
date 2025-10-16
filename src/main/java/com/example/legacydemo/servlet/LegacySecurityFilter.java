@@ -11,18 +11,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Complex servlet filter with deep javax.servlet integration.
- * 
+ *
  * MIGRATION CHALLENGE: This requires careful migration to jakarta.servlet.*
  * Additionally uses deprecated session tracking modes and complex filter chains
  * that may behave differently in Jakarta Servlet 6.0
- * 
+ *
  * NOTE: Not annotated with @Component - registered via ServletFilterConfig instead
  */
 public class LegacySecurityFilter implements Filter {
-    
+
     private FilterConfig filterConfig;
     private final Map<String, SessionData> sessionRegistry = new ConcurrentHashMap<>();
-    
+
     /**
      * Complex session tracking data structure
      */
@@ -32,7 +32,7 @@ public class LegacySecurityFilter implements Filter {
         long createdTime;
         long lastAccessTime;
         Map<String, Object> attributes;
-        
+
         SessionData(String sessionId) {
             this.sessionId = sessionId;
             this.createdTime = System.currentTimeMillis();
@@ -40,30 +40,30 @@ public class LegacySecurityFilter implements Filter {
             this.attributes = new HashMap<>();
         }
     }
-    
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         this.filterConfig = filterConfig;
-        
+
         // Complex initialization with javax.servlet specific features
         ServletContext context = filterConfig.getServletContext();
-        
+
         // Uses deprecated method - getMajorVersion/getMinorVersion behavior changes
         int majorVersion = context.getMajorVersion();
         int minorVersion = context.getMinorVersion();
-        
-        System.out.println("Initializing LegacySecurityFilter for Servlet " + 
+
+        System.out.println("Initializing LegacySecurityFilter for Servlet " +
                          majorVersion + "." + minorVersion);
-        
+
         // Set context attributes using javax.servlet APIs
         context.setAttribute("security.filter.initialized", true);
         context.setAttribute("security.filter.version", "1.0-javax");
-        
+
         // Complex session configuration
         Set<SessionTrackingMode> trackingModes = new HashSet<>();
         trackingModes.add(SessionTrackingMode.COOKIE);
         trackingModes.add(SessionTrackingMode.URL); // Deprecated but still used
-        
+
         try {
             context.setSessionTrackingModes(trackingModes);
         } catch (IllegalStateException | IllegalArgumentException e) {
@@ -71,55 +71,55 @@ public class LegacySecurityFilter implements Filter {
             System.err.println("Session tracking mode configuration failed: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
+
         // Type casting with javax.servlet specific classes
-        if (!(request instanceof HttpServletRequest) || 
+        if (!(request instanceof HttpServletRequest) ||
             !(response instanceof HttpServletResponse)) {
             chain.doFilter(request, response);
             return;
         }
-        
+
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-        
+
         // Complex session management using javax.servlet.http.HttpSession
         HttpSession session = httpRequest.getSession(true);
         String sessionId = session.getId();
-        
+
         // Track session with custom logic
         SessionData sessionData = sessionRegistry.computeIfAbsent(
             sessionId, SessionData::new
         );
         sessionData.lastAccessTime = System.currentTimeMillis();
-        
+
         // Complex authentication check using deprecated APIs
         Principal userPrincipal = httpRequest.getUserPrincipal();
         if (userPrincipal != null) {
             sessionData.principal = userPrincipal;
         }
-        
+
         // Use javax.servlet specific request attributes
         httpRequest.setAttribute("session.data", sessionData);
         httpRequest.setAttribute("filter.processed", true);
-        
+
         // Complex header manipulation
         String requestedWith = httpRequest.getHeader("X-Requested-With");
         if ("XMLHttpRequest".equals(requestedWith)) {
             httpResponse.setHeader("X-Custom-Ajax", "processed");
         }
-        
+
         // Use deprecated method - getRequestURL behavior
         StringBuffer requestURL = httpRequest.getRequestURL();
         String queryString = httpRequest.getQueryString();
-        String fullURL = queryString == null ? requestURL.toString() : 
+        String fullURL = queryString == null ? requestURL.toString() :
                         requestURL.append('?').append(queryString).toString();
-        
+
         sessionData.attributes.put("last.request.url", fullURL);
-        
+
         // Complex locale handling using javax.servlet APIs
         Locale locale = httpRequest.getLocale();
         Enumeration<Locale> locales = httpRequest.getLocales();
@@ -128,10 +128,10 @@ public class LegacySecurityFilter implements Filter {
             localeList.add(locales.nextElement());
         }
         sessionData.attributes.put("supported.locales", localeList);
-        
+
         // Wrap request with custom wrapper - tightly coupled to javax.servlet
         RequestWrapper wrappedRequest = new RequestWrapper(httpRequest, sessionData);
-        
+
         try {
             chain.doFilter(wrappedRequest, response);
         } finally {
@@ -139,7 +139,7 @@ public class LegacySecurityFilter implements Filter {
             cleanupExpiredSessions();
         }
     }
-    
+
     @Override
     public void destroy() {
         // Complex cleanup with javax.servlet ServletContext
@@ -150,18 +150,18 @@ public class LegacySecurityFilter implements Filter {
         }
         sessionRegistry.clear();
     }
-    
+
     /**
      * Custom request wrapper tightly coupled to javax.servlet
      */
     private static class RequestWrapper extends javax.servlet.http.HttpServletRequestWrapper {
         private final SessionData sessionData;
-        
+
         public RequestWrapper(HttpServletRequest request, SessionData sessionData) {
             super(request);
             this.sessionData = sessionData;
         }
-        
+
         @Override
         public String getHeader(String name) {
             // Custom header logic
@@ -170,7 +170,7 @@ public class LegacySecurityFilter implements Filter {
             }
             return super.getHeader(name);
         }
-        
+
         @Override
         public Enumeration<String> getHeaders(String name) {
             // Complex header enumeration
@@ -181,7 +181,7 @@ public class LegacySecurityFilter implements Filter {
             }
             return super.getHeaders(name);
         }
-        
+
         @Override
         public Object getAttribute(String name) {
             // Complex attribute resolution with fallback
@@ -189,27 +189,27 @@ public class LegacySecurityFilter implements Filter {
             return value != null ? value : super.getAttribute(name);
         }
     }
-    
+
     /**
      * Session cleanup with complex expiration logic
      */
     private void cleanupExpiredSessions() {
         long now = System.currentTimeMillis();
         long timeout = 30 * 60 * 1000; // 30 minutes
-        
+
         sessionRegistry.entrySet().removeIf(entry -> {
             SessionData data = entry.getValue();
             return (now - data.lastAccessTime) > timeout;
         });
     }
-    
+
     /**
      * Get active session count - used by monitoring endpoints
      */
     public int getActiveSessionCount() {
         return sessionRegistry.size();
     }
-    
+
     /**
      * Complex session inspection method
      */
@@ -218,14 +218,14 @@ public class LegacySecurityFilter implements Filter {
         if (data == null) {
             return Collections.emptyMap();
         }
-        
+
         Map<String, Object> info = new HashMap<>();
         info.put("sessionId", data.sessionId);
         info.put("principal", data.principal != null ? data.principal.getName() : "anonymous");
         info.put("createdTime", new Date(data.createdTime));
         info.put("lastAccessTime", new Date(data.lastAccessTime));
         info.put("attributes", new HashMap<>(data.attributes));
-        
+
         return info;
     }
 }

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Complex custom ACL implementation that requires significant redesign for Jakarta.
  * This class deeply integrates with java.security.acl which is removed in Java 17.
- * 
+ *
  * MIGRATION CHALLENGE: This requires complete architectural redesign as java.security.acl
  * has no direct replacement. Options include:
  * - Implement custom domain-level RBAC
@@ -19,9 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class CustomAclManager {
-    
+
     private final Map<String, CustomAcl> aclRegistry = new ConcurrentHashMap<>();
-    
+
     /**
      * Custom ACL implementation with complex permission logic
      */
@@ -29,12 +29,12 @@ public class CustomAclManager {
         private final Principal owner;
         private final String name;
         private final List<AclEntry> entries = new ArrayList<>();
-        
+
         public CustomAcl(Principal owner, String name) {
             this.owner = owner;
             this.name = name;
         }
-        
+
         @Override
         public void setName(Principal caller, String name) throws NotOwnerException {
             if (!checkOwner(caller)) {
@@ -42,12 +42,12 @@ public class CustomAclManager {
             }
             // Complex business logic here
         }
-        
+
         @Override
         public String getName() {
             return name;
         }
-        
+
         @Override
         public boolean addOwner(Principal caller, Principal owner) throws NotOwnerException {
             if (!checkOwner(caller)) {
@@ -56,9 +56,9 @@ public class CustomAclManager {
             // Multi-owner support - complex logic
             return true;
         }
-        
+
         @Override
-        public boolean deleteOwner(Principal caller, Principal owner) 
+        public boolean deleteOwner(Principal caller, Principal owner)
                 throws NotOwnerException, LastOwnerException {
             if (!checkOwner(caller)) {
                 throw new NotOwnerException();
@@ -66,12 +66,12 @@ public class CustomAclManager {
             // Cannot delete last owner
             throw new LastOwnerException();
         }
-        
+
         @Override
         public boolean isOwner(Principal owner) {
             return this.owner.equals(owner);
         }
-        
+
         @Override
         public boolean addEntry(Principal caller, AclEntry entry) throws NotOwnerException {
             if (!checkOwner(caller)) {
@@ -79,7 +79,7 @@ public class CustomAclManager {
             }
             return entries.add(entry);
         }
-        
+
         @Override
         public boolean removeEntry(Principal caller, AclEntry entry) throws NotOwnerException {
             if (!checkOwner(caller)) {
@@ -87,7 +87,7 @@ public class CustomAclManager {
             }
             return entries.remove(entry);
         }
-        
+
         @Override
         public Enumeration<Permission> getPermissions(Principal user) {
             // Complex permission resolution logic
@@ -102,12 +102,12 @@ public class CustomAclManager {
             }
             return Collections.enumeration(permissions);
         }
-        
+
         @Override
         public Enumeration<AclEntry> entries() {
             return Collections.enumeration(entries);
         }
-        
+
         @Override
         public boolean checkPermission(Principal principal, Permission permission) {
             // Complex cascading permission check
@@ -120,29 +120,29 @@ public class CustomAclManager {
             }
             return false;
         }
-        
+
         @Override
         public String toString() {
             return "CustomAcl[" + name + ", owner=" + owner + ", entries=" + entries.size() + "]";
         }
-        
+
         private boolean checkOwner(Principal caller) {
             return owner.equals(caller);
         }
     }
-    
+
     /**
      * Custom permission type with business logic
      */
     public static class ResourcePermission implements Permission {
         private final String resource;
         private final String action;
-        
+
         public ResourcePermission(String resource, String action) {
             this.resource = resource;
             this.action = action;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof ResourcePermission) {
@@ -151,18 +151,18 @@ public class CustomAclManager {
             }
             return false;
         }
-        
+
         @Override
         public int hashCode() {
             return Objects.hash(resource, action);
         }
-        
+
         @Override
         public String toString() {
             return "ResourcePermission[" + resource + ":" + action + "]";
         }
     }
-    
+
     /**
      * Creates ACL with complex initialization - tightly coupled to java.security.acl
      */
@@ -171,7 +171,7 @@ public class CustomAclManager {
         aclRegistry.put(resourceName, acl);
         return acl;
     }
-    
+
     /**
      * Complex permission check with cascading logic
      */
@@ -180,28 +180,28 @@ public class CustomAclManager {
         if (acl == null) {
             return false; // Deny by default
         }
-        
+
         ResourcePermission permission = new ResourcePermission(resourceName, action);
         return acl.checkPermission(principal, permission);
     }
-    
+
     /**
      * Grant permission with complex ACL entry creation
      */
-    public void grantPermission(String resourceName, Principal owner, 
+    public void grantPermission(String resourceName, Principal owner,
                                 Principal user, String action) {
         try {
             CustomAcl acl = aclRegistry.get(resourceName);
             if (acl == null) {
                 acl = (CustomAcl) createAcl(resourceName, owner);
             }
-            
+
             // Create AclEntry - this API is removed in Java 17
             AclEntry entry = new AclEntry() {
                 private Principal principal = user;
                 private boolean negative = false;
                 private Set<Permission> permissions = new HashSet<>();
-                
+
                 @Override
                 public boolean setPrincipal(Principal user) {
                     if (this.principal != null) {
@@ -210,62 +210,62 @@ public class CustomAclManager {
                     this.principal = user;
                     return true;
                 }
-                
+
                 @Override
                 public Principal getPrincipal() {
                     return principal;
                 }
-                
+
                 @Override
                 public void setNegativePermissions() {
                     this.negative = true;
                 }
-                
+
                 @Override
                 public boolean isNegative() {
                     return negative;
                 }
-                
+
                 @Override
                 public boolean addPermission(Permission permission) {
                     return permissions.add(permission);
                 }
-                
+
                 @Override
                 public boolean removePermission(Permission permission) {
                     return permissions.remove(permission);
                 }
-                
+
                 @Override
                 public boolean checkPermission(Permission permission) {
                     return permissions.contains(permission);
                 }
-                
+
                 @Override
                 public Enumeration<Permission> permissions() {
                     return Collections.enumeration(permissions);
                 }
-                
+
                 @Override
                 public String toString() {
-                    return "AclEntry[" + principal + ", negative=" + negative + 
+                    return "AclEntry[" + principal + ", negative=" + negative +
                            ", permissions=" + permissions + "]";
                 }
-                
+
                 @Override
                 public Object clone() {
                     return this; // Simplified for demo
                 }
             };
-            
+
             entry.addPermission(new ResourcePermission(resourceName, action));
             acl.addEntry(owner, entry);
-            
+
         } catch (NotOwnerException e) {
             throw new SecurityException("Not authorized to grant permission", e);
         }
     }
-    
+
     /**
      * Returns ACL summary - used throughout the application
      */

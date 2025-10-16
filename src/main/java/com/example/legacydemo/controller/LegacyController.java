@@ -32,7 +32,7 @@ public class LegacyController {
   private final ReflectiveApiCaller reflectiveApiCaller;
   private final ComplexJaxbProcessor jaxbProcessor;
 
-  public LegacyController(CustomerRepository repo, AsyncService asyncService, 
+  public LegacyController(CustomerRepository repo, AsyncService asyncService,
                          LegacyThreadService legacyThreadService,
                          CustomAclManager aclManager,
                          LegacySecurityFilter securityFilter,
@@ -108,25 +108,25 @@ public class LegacyController {
   @GetMapping("/security/acl")
   public Map<String, Object> aclDemo() {
     Map<String, Object> result = new LinkedHashMap<>();
-    
+
     // Create principal
     Principal owner = () -> "admin";
     Principal user = () -> "john.doe";
-    
+
     // Create ACL for resource
     aclManager.createAcl("document-123", owner);
     aclManager.grantPermission("document-123", owner, user, "READ");
-    
+
     // Check permissions
     boolean canRead = aclManager.checkAccess("document-123", user, "READ");
     boolean canWrite = aclManager.checkAccess("document-123", user, "WRITE");
-    
+
     result.put("resource", "document-123");
     result.put("user", user.getName());
     result.put("canRead", canRead);
     result.put("canWrite", canWrite);
     result.put("aclSummary", aclManager.getAclSummary());
-    
+
     return result;
   }
 

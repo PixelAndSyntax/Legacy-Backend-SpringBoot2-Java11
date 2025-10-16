@@ -40,6 +40,46 @@
       <artifactId>jaxb-runtime</artifactId>
       <version>2.3.7</version>
     </dependency>
+
+    <!-- LEGACY LIBRARY DEPENDENCIES - javax.* based, not compatible with Jakarta EE -->
+    <!-- These demonstrate the challenge of third-party libraries that haven't migrated -->
+
+    <!-- Commons BeanUtils - older version uses javax.* annotations -->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.9.4</version>
+    </dependency>
+
+    <!-- Hibernate Validator 6.x - uses javax.validation.* -->
+    <!-- Later versions (7.x+) use jakarta.validation.* -->
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>6.2.5.Final</version>
+    </dependency>
+
+    <!-- Jackson JAXB Annotations - based on javax.xml.bind -->
+    <!-- Requires migration to Jackson Jakarta XML Bind -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-jaxb-annotations</artifactId>
+      <version>2.13.5</version>
+    </dependency>
+
+    <!-- Older Apache CXF - heavily dependent on javax.* -->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+      <version>3.4.10</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>javax.ws.rs-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>

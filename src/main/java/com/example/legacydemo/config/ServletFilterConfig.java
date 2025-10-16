@@ -10,13 +10,13 @@ import javax.servlet.Filter;
 
 /**
  * Servlet filter configuration using javax.servlet APIs.
- * 
+ *
  * MIGRATION CHALLENGE: FilterRegistrationBean<Filter> needs javax.servlet.Filter
  * which must be migrated to jakarta.servlet.Filter in Spring Boot 3.x
  */
 @Configuration
 public class ServletFilterConfig {
-    
+
     /**
      * Create the legacy security filter bean
      */
@@ -24,10 +24,10 @@ public class ServletFilterConfig {
     public LegacySecurityFilter legacySecurityFilter() {
         return new LegacySecurityFilter();
     }
-    
+
     /**
      * Register legacy security filter
-     * 
+     *
      * MIGRATION NOTE: The Filter type parameter changes from
      * javax.servlet.Filter to jakarta.servlet.Filter
      */
