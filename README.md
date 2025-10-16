@@ -64,6 +64,12 @@ Endpoints:
 - `GET /api/thread/stop-demo` — demonstrates the deprecated thread API.
 - `GET /api/unsafe` — shows whether `sun.misc.Unsafe` could be accessed.
 - `GET /api/applet` — returns the Applet class name.
+- `GET /api/security/acl` — **Complex ACL security using java.security.acl (removed in Java 17)**
+- `GET /api/security/sessions` — **Servlet filter info using javax.servlet APIs**
+- `GET /api/reflection/test` — **Reflection-based deprecated API calls (hidden from static analysis)**
+- `GET /api/reflection/chain` — **Complex reflection chain**
+- `GET /api/xml/transaction` — **Complex JAXB with custom adapters and marshallers**
+- `GET /api/xml/transaction-callbacks` — **JAXB with callbacks and listeners**
 
 ## Running unit tests
 
@@ -109,6 +115,153 @@ This project has been configured and fixed to build successfully with Java 11:
   - AsyncServiceTest: 1 test ✅
   - LegacyControllerTest: 3 tests ✅
   - JaxbTest: 1 test ✅
+
+## 🚨 Migration Challenges - Designed to Require Human Intervention
+
+This project is intentionally designed with complexities that **automated migration tools cannot fully handle**. The following challenges require human analysis and decision-making:
+
+### 1. **Deep java.security.acl Integration** 🔴 CRITICAL
+**File**: `security/CustomAclManager.java`
+
+**Challenge**: The entire security layer is built on `java.security.acl` which is completely removed in Java 17.
+
+**Why Automation Fails**:
+- No direct replacement API exists
+- Requires architectural redesign decisions
+- Business logic embedded in ACL implementation
+- Complex permission cascading and negative permissions
+
+**Manual Steps Required**:
+1. Choose replacement strategy (Spring Security ACL / Custom RBAC / External framework)
+2. Redesign permission model
+3. Migrate all ACL-based business logic
+4. Update security tests
+5. Validate equivalent behavior
+
+### 2. **Reflection-Based Deprecated API Usage** 🔴 CRITICAL
+**File**: `util/ReflectiveApiCaller.java`
+
+**Challenge**: Uses reflection and MethodHandles to dynamically invoke removed APIs.
+
+**Why Automation Fails**:
+- Static analysis cannot detect reflective calls
+- Method names are strings, not compile-time references
+- Dynamic class loading hides dependencies
+- MethodHandle usage further obscures API usage
+
+**Manual Steps Required**:
+1. Runtime testing to identify all reflective failures
+2. Trace through reflection chains manually
+3. Replace each dynamic call with safe alternatives
+4. Test with Java 17 to catch runtime errors
+
+### 3. **Complex JAXB Custom Adapters** 🟡 MODERATE
+**File**: `xml/ComplexJaxbProcessor.java`
+
+**Challenge**: Extensive custom XmlAdapters, Marshaller configurations, and ValidationEventHandlers.
+
+**Why Automation Fails**:
+- Custom adapter logic may behave differently in jakarta.xml.bind
+- Marshaller property names and behavior may change
+- ValidationEventHandler callbacks need manual verification
+- Marshaller.Listener callbacks require testing
+
+**Manual Steps Required**:
+1. Migrate ALL imports from javax.xml.bind.* to jakarta.xml.bind.*
+2. Update custom XmlAdapter implementations
+3. Test marshalling/unmarshalling with complex nested objects
+4. Verify ValidationEventHandler behavior
+5. Test all Marshaller properties and callbacks
+
+### 4. **Servlet Filter Deep Integration** 🟡 MODERATE
+**File**: `servlet/LegacySecurityFilter.java`
+
+**Challenge**: Complex javax.servlet Filter with session tracking, request wrapping, and lifecycle management.
+
+**Why Automation Fails**:
+- FilterChain behavior may differ in jakarta.servlet
+- SessionTrackingMode configuration changes
+- HttpServletRequestWrapper implementation details
+- Filter lifecycle and context interactions need verification
+
+**Manual Steps Required**:
+1. Migrate javax.servlet.* to jakarta.servlet.*
+2. Test filter chain ordering and execution
+3. Verify session management behavior
+4. Validate request wrapper functionality
+5. Check ServletContext attribute handling
+
+### 5. **javax.* → jakarta.* Namespace Changes** 🟡 MODERATE
+**Files**: Multiple (Controller, Filter, JPA entities, JAXB classes)
+
+**Challenge**: Pervasive use of javax.* packages throughout the codebase.
+
+**Affected Namespaces**:
+- `javax.servlet.*` → `jakarta.servlet.*`
+- `javax.persistence.*` → `jakarta.persistence.*`
+- `javax.xml.bind.*` → `jakarta.xml.bind.*`
+- `javax.validation.*` → `jakarta.validation.*`
+
+**Manual Steps Required**:
+1. Global find/replace with verification
+2. Update ALL import statements
+3. Verify binary compatibility with jakarta dependencies
+4. Test all affected functionality
+5. Check third-party library compatibility
+
+### 6. **FilterRegistrationBean Type Parameters** 🟢 MINOR
+**File**: `config/ServletFilterConfig.java`
+
+**Challenge**: FilterRegistrationBean<Filter> type parameter changes from javax to jakarta.
+
+**Manual Steps Required**:
+1. Update Filter type parameter
+2. Verify filter registration still works
+3. Test filter ordering and precedence
+
+## 🎯 Why This Project is Ideal for Testing Migration Tools
+
+1. **Multi-Layer Complexity**: Security, servlet, reflection, and JAXB challenges
+2. **Hidden Dependencies**: Reflection and dynamic class loading
+3. **Architectural Decisions**: ACL replacement requires design choices
+4. **No Simple Find/Replace**: Behavioral differences need testing
+5. **Real-World Patterns**: Mirrors actual legacy enterprise applications
+
+## 📋 Migration Checklist for Java 17 + Spring Boot 3.x
+
+Manual intervention required at each step:
+
+- [ ] **Phase 1: Analysis**
+  - [ ] Inventory all java.security.acl usage
+  - [ ] Identify all reflective API calls
+  - [ ] List all javax.* dependencies
+  - [ ] Review custom JAXB adapters
+
+- [ ] **Phase 2: Architectural Decisions**
+  - [ ] Choose ACL replacement strategy
+  - [ ] Design new security permission model
+  - [ ] Plan reflection removal strategy
+
+- [ ] **Phase 3: Code Migration**
+  - [ ] Remove/replace java.security.acl
+  - [ ] Replace reflective deprecated API calls
+  - [ ] Migrate javax.* to jakarta.*
+  - [ ] Update JAXB adapters and marshallers
+  - [ ] Update servlet filters
+
+- [ ] **Phase 4: Testing & Validation**
+  - [ ] Unit test all migrated components
+  - [ ] Integration test security layer
+  - [ ] Performance test (especially reflection replacements)
+  - [ ] Validate XML marshalling/unmarshalling
+  - [ ] Test filter chains and session management
+
+- [ ] **Phase 5: Verification**
+  - [ ] Build with Java 17
+  - [ ] Run all tests
+  - [ ] Verify behavioral equivalence
+  - [ ] Performance benchmarking
+  - [ ] Security audit
 
 ## Designed upgrade path to Java 17 + Spring Boot 3.x
 
