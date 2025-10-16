@@ -1,0 +1,21 @@
+# Reference Files Directory
+
+This directory contains reference markdown files that can be used with the @specify command to provide additional context for feature specifications.
+
+## Usage
+
+When using @specify, you can reference a file in this directory:
+```
+@specify Add user authentication using auth-requirements.md
+```
+
+The specify command will look for `.specify/reference/auth-requirements.md` and use it to enhance the specification with predefined:
+- Primary User Story details
+- Acceptance Scenarios examples  
+- Edge Cases to consider
+- Functional Requirements templates
+- Key Entities definitions
+
+## File Format
+
+Reference files should be structured markdown with sections that correspond to the spec template sections.
