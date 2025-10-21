@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Copyright (c) [https://github.com/github/spec-kit]
+# Modified by Trentin Barnard, 2025
+# MIT License
+
 # (Moved to scripts/bash/) Create a new feature with branch, directory structure, and template
 set -e
 

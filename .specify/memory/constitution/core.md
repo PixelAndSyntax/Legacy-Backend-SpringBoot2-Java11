@@ -3,20 +3,20 @@
 <!--
 SYNC IMPACT REPORT (2025-10-16):
 - File: core.md
-- Version: 1.0.0 → 1.0.0 (initial creation from template)
-- Modified Principles: All (initial population)
-- Added Sections: Complete core standards for Java 11/Spring Boot 2.7.18 legacy project
-- Removed Sections: None
-- Templates Requiring Updates: None (initial setup)
+- Version: 1.0.0 → 1.1.0 (removed database and CI/CD references)
+- Modified Principles: Technology Stack, Enforcement sections updated
+- Added Sections: None
+- Removed Sections: Database standards, CI/CD validation
+- Templates Requiring Updates: None
 - Follow-up TODOs: None
-- Impact: Establishes baseline for legacy migration project
+- Impact: Focused on Java 11 and Spring Boot 2 best practices only
 -->
 
 <!--
 Section: core
 Priority: critical
 Applies to: all projects
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2025-10-16
 Project: Legacy-Backend-SpringBoot2-Java11
 -->
@@ -41,12 +41,6 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | Compute Config         | Maven 3.9.3+ with .mvn/ directory configuration | MUST     | Standard configuration in .mvn/settings.xml    |
 | Compute Optimization   | Spring Boot actuator for metrics                | SHOULD   | Performance tuning                             |
 | Compute Monitoring     | Actuator /health and /metrics endpoints         | SHOULD   | Health checks                                  |
-| **Database**           | H2 (in-memory)                                  | MUST     | Development and testing database               |
-| Database Backup        | Not applicable (in-memory database)             | N/A      | Data is ephemeral                              |
-| Database Security      | Schema-based initialization with data.sql       | MUST     | Controlled data seeding                        |
-| Database Optimization  | H2 compatibility mode for testing               | SHOULD   | Query performance                              |
-| Database Monitoring    | Spring Data JPA query logging                   | SHOULD   | Query performance metrics                      |
-| Database Optional      | H2 Console for development debugging            | COULD    | Advanced debugging                             |
 
 ### Technology Prohibitions (WON'T without RFC)
 
@@ -57,8 +51,6 @@ Project: Legacy-Backend-SpringBoot2-Java11
 - Alternative compute platforms (must remain Spring Boot 2.7.18 until migration)
 - Use of Spring Boot 3.x dependencies prematurely
 - Spring Native or GraalVM without RFC
-- Alternative databases without RFC approval (project scope is H2 only)
-- Production use of H2 (in-memory only for dev/test)
 
 ---
 
@@ -135,7 +127,7 @@ try {
 | Type Safety        | Mandatory         | Compile-time warnings       | Yes       | Every commit |
 | Error Handling     | Mandatory         | Code review                 | Partial   | Every PR     |
 | Logging            | Mandatory         | Logback configuration       | Yes       | Every commit |
-| Secrets            | Mandatory         | Git secret scanning         | Yes       | Every commit |
+| Secrets            | Mandatory         | Manual code review          | Partial   | Every PR     |
 | Input Validation   | Mandatory         | Security review + tests     | Partial   | Per PR       |
 | Versioning         | Mandatory         | Maven enforcer plugin       | Yes       | Every build  |
 | Architecture       | Mandatory         | Architecture review         | No        | Per feature  |
@@ -146,9 +138,9 @@ try {
 | ------------------------- | ------------------------------------------------ | -------- | ------------------ |
 | **Dependency Versions**   | Use Spring Boot parent POM version management    | MUST     | Maven dependency   |
 | BOM Management            | Import dependency BOMs for consistent versions   | MUST     | Maven configuration |
-| **SNAPSHOT Prohibition**  | No SNAPSHOT dependencies in main/master branch   | MUST     | CI check           |
-| Dependency Vulnerability  | Scan dependencies for CVEs before release        | MUST     | OWASP Dependency   |
-| **License Compliance**    | Only approved licenses (Apache 2.0, MIT, BSD)    | MUST     | License scanner    |
+| **SNAPSHOT Prohibition**  | No SNAPSHOT dependencies in main/master branch   | MUST     | Manual review           |
+| Dependency Vulnerability  | Scan dependencies for CVEs before release        | SHOULD   | OWASP Dependency   |
+| **License Compliance**    | Only approved licenses (Apache 2.0, MIT, BSD)    | MUST     | Manual review    |
 | Transitive Dependencies   | Review and justify all transitive dependencies   | SHOULD   | Dependency tree    |
 | **Minimal Dependencies**  | Prefer built-in solutions over external libraries | SHOULD   | Architecture review |
 
@@ -169,10 +161,12 @@ try {
 
 | Requirement           | Description                                   | Priority | Validation    |
 | --------------------- | --------------------------------------------- | -------- | ------------- |
-| **Build Tool**        | Maven 3.9.3+ with .mvn/settings.xml           | MUST     | Maven wrapper |
-| Build Reproducibility | Consistent builds with .mvn/maven.config      | MUST     | CI validation |
+| **Build Tool**        | Maven 3.9.3+ with .mvn/settings.xml           | MUST     | Maven configuration |
+| Build Reproducibility | Consistent builds with .mvn/maven.config      | MUST     | Manual validation |
 | **JVM Configuration** | Standardized JVM args in .mvn/jvm.config      | MUST     | Build config  |
-| Clean Builds          | `mvn clean install` must always succeed       | MUST     | CI check      |
-| **Test Execution**    | All tests must pass before commit             | MUST     | Pre-commit    |
+| Clean Builds          | `mvn clean install` must always succeed       | MUST     | Manual verification      |
+| **Test Execution**    | All tests must pass before commit             | MUST     | Developer discipline    |
 | Build Warnings        | Address all compiler warnings                 | SHOULD   | Code review   |
 | **Packaging**         | JAR packaging for Spring Boot executable      | MUST     | Maven config  |
+
+````

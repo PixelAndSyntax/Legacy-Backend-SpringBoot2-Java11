@@ -3,13 +3,13 @@
 <!--
 SYNC IMPACT REPORT (2025-10-16):
 - File: observability.md
-- Version: 1.0.0 → 1.0.0 (initial creation from template)
-- Modified Principles: All (initial population)
-- Added Sections: Complete observability standards for Spring Boot logging
-- Removed Sections: None
-- Templates Requiring Updates: None (initial setup)
+- Version: 1.0.0 → 1.1.0 (removed database references)
+- Modified Principles: Metrics and logging sections updated to remove database layer
+- Added Sections: None
+- Removed Sections: Database performance metrics, repository logging
+- Templates Requiring Updates: None
 - Follow-up TODOs: None
-- Impact: Establishes baseline logging and monitoring standards
+- Impact: Focus on application-layer observability only
 -->
 
 <!--
@@ -17,7 +17,7 @@ Section: observability
 Priority: high
 Applies to: backend, infrastructure
 Dependencies: [core]
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2025-10-16
 Project: Legacy-Backend-SpringBoot2-Java11
 -->
@@ -96,7 +96,7 @@ log.error("Failed to save customer: {}", customerId, exception);
 log.info("Processing customer: " + customerId); // Don't do this!
 
 // CORRECT: Multiple parameters
-log.info("User {} accessed resource {} with permission {}", 
+log.info("User {} accessed resource {} with permission {}",
          userId, resourceId, permission);
 ```
 
@@ -110,7 +110,7 @@ log.info("User {} accessed resource {} with permission {}",
 | ----------------------- | ---------------------------------- | ---------- | -------- |
 | **Business Metrics**    | Customer creations, API calls      | Not implemented | COULD    |
 | **System Metrics**      | Request latency, error rates       | Not implemented | SHOULD   |
-| **Performance Metrics** | Database query times, async tasks  | Not implemented | COULD    |
+| **Performance Metrics** | Async task execution, thread pools | Not implemented | COULD    |
 
 **Note**: This baseline project does not implement metrics collection. Consider Spring Boot Actuator for production deployments.
 
@@ -176,7 +176,6 @@ log.info("User {} accessed resource {} with permission {}",
 | **Service**    | Business operation start             | Operation name, key parameters   | DEBUG |
 | **Service**    | Business operation complete          | Result summary, duration         | INFO  |
 | **Service**    | Business rule violation              | Rule name, violation details     | WARN  |
-| **Repository** | Database operation                   | Query summary (not full SQL)     | DEBUG |
 | **Filter**     | Request intercepted                  | URL, method, session info        | DEBUG |
 | **Security**   | Authorization check                  | Principal, resource, permission  | DEBUG |
 | **Security**   | Authorization failure                | Denial reason, principal         | WARN  |

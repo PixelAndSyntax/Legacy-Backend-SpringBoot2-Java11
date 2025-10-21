@@ -3,13 +3,13 @@
 <!--
 SYNC IMPACT REPORT (2025-10-16):
 - File: testing.md
-- Version: 1.0.0 → 1.0.0 (initial creation from template)
-- Modified Principles: All (initial population)
-- Added Sections: Complete testing standards for Spring Boot project
-- Removed Sections: None
-- Templates Requiring Updates: None (initial setup)
+- Version: 1.0.0 → 1.1.0 (removed database and CI/CD references)
+- Modified Principles: Integration tests, test data management sections updated
+- Added Sections: None
+- Removed Sections: Database-specific testing requirements, CI pipeline references
+- Templates Requiring Updates: None
 - Follow-up TODOs: None
-- Impact: Establishes baseline testing standards
+- Impact: Focus on application-layer testing only
 -->
 
 <!--
@@ -17,7 +17,7 @@ Section: testing
 Priority: critical
 Applies to: all projects
 Dependencies: [core]
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2025-10-16
 Project: Legacy-Backend-SpringBoot2-Java11
 -->
@@ -68,7 +68,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | --------------------- | --------------------------------------- | -------- | ---------------- |
 | Naming Convention     | Class name + "Test" suffix              | MUST     | Maven Surefire   |
 | Mocking Allowed       | Use Mockito for service dependencies    | MUST     | Test framework   |
-| External Dependencies | Mock all external calls (DB, HTTP)      | MUST     | Test isolation   |
+| External Dependencies | Mock all external calls (HTTP, etc.)    | MUST     | Test isolation   |
 | Fast Execution        | Unit tests should run in <5 seconds total | SHOULD   | Performance test |
 | Assertions            | Use JUnit 5 assertions or AssertJ       | MUST     | Test framework   |
 
@@ -81,8 +81,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | Spring Context  | Use @SpringBootTest or @WebMvcTest             | MUST     | Test framework |
 | Real Services   | Load actual Spring beans (not mocked unless necessary) | MUST     | Integration testing |
 | MockMvc         | Use MockMvc for HTTP endpoint testing          | MUST     | Spring Test    |
-| Database        | Use H2 in-memory with schema.sql and data.sql  | MUST     | Test isolation |
-| Transaction Rollback | Use @Transactional to rollback test data      | SHOULD   | Data cleanup   |
+| Test Isolation  | Tests should not depend on external state      | MUST     | Test design   |
 
 **Example**: `LegacyControllerTest` uses `@WebMvcTest` with MockMvc to test REST endpoints.
 
@@ -117,8 +116,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | Context               | Mocking Policy                       | Priority | Rationale                      |
 | --------------------- | ------------------------------------ | -------- | ------------------------------ |
 | **Unit Tests**        | Mock all external dependencies       | MUST     | Isolate unit under test        |
-| Service Dependencies  | Mock repository and other services   | MUST     | Fast, deterministic tests      |
-| Database Calls        | Mock repository methods              | MUST     | No real DB connections in unit |
+| Service Dependencies  | Mock other services                  | MUST     | Fast, deterministic tests      |
 | **Integration Tests** | Minimize mocking (real Spring beans) | MUST     | Test real interactions         |
 | MockMvc Tests         | Use real controllers and services    | MUST     | Validate integration           |
 
@@ -134,7 +132,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 **Example from AsyncServiceTest**:
 ```java
 @Mock
-private SomeRepository repository;
+private SomeService otherService;
 
 @InjectMocks
 private AsyncService asyncService;
@@ -148,7 +146,6 @@ private AsyncService asyncService;
 | ------------------ | --------------------------------------- | -------- | ------------------ |
 | Maven Test Phase   | Run all tests with `mvn test`           | MUST     | Maven Surefire     |
 | Pre-commit Tests   | Run tests before committing             | SHOULD   | Developer discipline |
-| CI Pipeline Tests  | All tests must pass in CI               | MUST     | CI configuration   |
 | Test Isolation     | Tests must not depend on each other     | MUST     | JUnit execution    |
 | Parallel Execution | Not configured (sequential execution)   | N/A      | Default behavior   |
 
@@ -171,15 +168,9 @@ mvn -s .mvn/settings.xml test jacoco:report
 
 | Requirement           | Description                           | Priority | Implementation       |
 | --------------------- | ------------------------------------- | -------- | -------------------- |
-| **Schema Setup**      | schema.sql defines table structure    | MUST     | H2 initialization    |
-| **Data Seeding**      | data.sql provides test data           | MUST     | H2 initialization    |
-| Test Data Isolation   | Each test should be independent       | MUST     | @Transactional rollback |
+| **Test Data Isolation** | Each test should be independent       | MUST     | Test design          |
 | Fixture Management    | Use @BeforeEach for test setup        | SHOULD   | JUnit lifecycle      |
-| **Cleanup**           | Tests should not leave side effects   | MUST     | Transaction rollback |
-
-**Current Setup**:
-- `src/main/resources/schema.sql` - CUSTOMER table definition
-- `src/main/resources/data.sql` - Sample customer records
+| **Cleanup**           | Tests should not leave side effects   | MUST     | Proper teardown      |
 
 ---
 
@@ -206,7 +197,7 @@ mvn -s .mvn/settings.xml test jacoco:report
 
 **Current Baseline**: All 5 tests passing ✅
 - AsyncServiceTest: 1 test
-- LegacyControllerTest: 3 tests  
+- LegacyControllerTest: 3 tests
 - JaxbTest: 1 test
 
 ---

@@ -3,13 +3,13 @@
 <!--
 SYNC IMPACT REPORT (2025-10-16):
 - File: architecture.md
-- Version: 1.0.0 → 1.0.0 (initial creation from template)
-- Modified Principles: All (initial population)
-- Added Sections: Complete architecture standards for Spring Boot REST API
-- Removed Sections: None
-- Templates Requiring Updates: None (initial setup)
+- Version: 1.0.0 → 1.1.0 (removed database layer references)
+- Modified Principles: Service Architecture, removed database design section
+- Added Sections: None
+- Removed Sections: Database Design Standards
+- Templates Requiring Updates: None
 - Follow-up TODOs: None
-- Impact: Establishes Spring Boot 2.7.18 architectural patterns
+- Impact: Focus on application layer architecture only
 -->
 
 <!--
@@ -17,7 +17,7 @@ Section: architecture
 Priority: high
 Applies to: all projects
 Dependencies: [core]
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2025-10-16
 Project: Legacy-Backend-SpringBoot2-Java11
 -->
@@ -26,11 +26,10 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 | Principle               | Description                                      | Priority | Implementation                    |
 | ----------------------- | ------------------------------------------------ | -------- | --------------------------------- |
-| **Design Pattern**      | Layered Architecture (Controller-Service-Repository) | MUST     | Standard Spring Boot MVC pattern  |
+| **Design Pattern**      | Layered Architecture (Controller-Service) | MUST     | Standard Spring Boot MVC pattern  |
 | Service Responsibility  | Single Responsibility - one business concern per service | MUST     | One concern per service class     |
-| State Management        | Stateless services with database persistence     | MUST     | Stateless Spring beans            |
+| State Management        | Stateless services                               | MUST     | Stateless Spring beans            |
 | Component Separation    | Clear boundaries between layers (no cross-layer access) | MUST     | Package structure enforcement     |
-| Data Access Pattern     | Repository pattern with Spring Data JPA          | MUST     | JpaRepository interfaces          |
 | Performance Constraints | API response time <500ms for 95th percentile     | SHOULD   | Response time SLO                 |
 
 ---
@@ -41,8 +40,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | ---------------- | ---------------------------------------------- | ------------------------------ | --------------------------------- |
 | **Handlers**     | REST endpoints, request/response transformation | @RestController with @RequestMapping | Entry point, thin logic           |
 | **Services**     | Business logic, orchestration, validation      | @Service annotation            | Business logic layer              |
-| **Repositories** | Data access, CRUD operations                   | Spring Data JpaRepository      | Data access abstraction           |
-| **Models/DTOs**  | Data transfer objects and JPA entities         | POJO with JPA annotations      | Separate DTOs from entities       |
+| **Models/DTOs**  | Data transfer objects and domain models        | POJO with validation annotations | Immutable DTOs preferred       |
 | **Validators**   | Input validation, business rule validation     | @Valid, custom validators      | JSR-303 Bean Validation           |
 | **Middleware**   | Filters, interceptors, exception handlers      | Filter, @ControllerAdvice      | Cross-cutting concerns            |
 
@@ -52,7 +50,6 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | ---- | ---------- | --------------------------------- | ------------------------------ |
 | 1    | Controller | Parse request, validate structure | @Valid annotation, @RequestBody |
 | 2    | Service    | Execute business logic            | Business rules, authorization  |
-| 3    | Repository | Persist/retrieve data             | JPA entity validation          |
 | 4    | Controller | Format response, handle errors    | ResponseEntity<T> wrapper      |
 
 ### CRUD Operations Standard
@@ -67,30 +64,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 ---
 
-## 3. Database Design Standards
-
-| Guideline             | Requirement                                       | Priority    | When Required                       |
-| --------------------- | ------------------------------------------------- | ----------- | ----------------------------------- |
-| **Primary Keys**      | Auto-generated Long IDs with @GeneratedValue      | MUST        | All JPA entities                    |
-| Index Design          | Add @Index for frequently queried fields          | SHOULD      | Query performance optimization      |
-| **Table Naming**      | Uppercase table names (e.g., CUSTOMER)            | MUST        | Database naming convention          |
-| Column Naming         | Uppercase column names (e.g., FIRST_NAME)         | MUST        | Database naming convention          |
-| **Entity Validation** | Use @NotNull, @Size, @Email for entity constraints | MUST        | Data integrity                      |
-| Relationship Mapping  | Use @OneToMany, @ManyToOne with proper cascade    | MUST        | JPA relationships                   |
-| **Schema Management** | Schema defined in schema.sql, data in data.sql    | MUST        | H2 initialization                   |
-| Schema Versioning     | Version schema changes in migration scripts       | SHOULD      | Future database migration           |
-
-### Database Prohibitions (WON'T)
-
-- Native SQL queries without justification (prefer JPQL)
-- Lazy loading without explicit fetch strategy
-- Bidirectional relationships without careful cascade configuration
-- Auto-DDL in production (spring.jpa.hibernate.ddl-auto=none for prod)
-- Missing @Transactional on service methods that modify data
-
----
-
-## 4. API Design Standards
+## 3. API Design Standards
 
 | Standard Area           | Requirement                                              | Priority | Validation              |
 | ----------------------- | -------------------------------------------------------- | -------- | ----------------------- |
@@ -120,7 +94,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 ---
 
-## 5. Security Architecture
+## 4. Security Architecture
 
 | Security Layer            | Requirement                                           | Priority | Implementation                  |
 | ------------------------- | ----------------------------------------------------- | -------- | ------------------------------- |
@@ -147,7 +121,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 ---
 
-## 6. Asynchronous Processing Standards
+## 5. Asynchronous Processing Standards
 
 | Standard                  | Requirement                                   | Priority | Notes                              |
 | ------------------------- | --------------------------------------------- | -------- | ---------------------------------- |
@@ -171,14 +145,13 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 ---
 
-## 7. Package Structure Standards
+## 6. Package Structure Standards
 
 | Package                     | Purpose                          | Allowed Dependencies                |
 | --------------------------- | -------------------------------- | ----------------------------------- |
 | `controller`                | REST endpoints                   | service, domain (DTOs only)         |
-| `service`                   | Business logic                   | repository, domain                  |
-| `repo` (repository)         | Data access                      | domain (entities only)              |
-| `domain`                    | Entities and DTOs                | None (pure data classes)            |
+| `service`                   | Business logic                   | domain                              |
+| `domain`                    | DTOs and domain models           | None (pure data classes)            |
 | `config`                    | Spring configuration             | Any (configuration layer)           |
 | `legacy`                    | Deprecated code for migration    | Any (intentionally problematic)     |
 | `security`                  | Security components              | domain, service                     |
@@ -188,8 +161,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 ### Architecture Prohibitions
 
-- Controllers directly accessing repositories (must go through services)
-- Domain entities containing business logic (anemic domain model acceptable for CRUD)
+- Controllers directly calling other controllers
+- Domain models containing business logic (keep them as DTOs)
 - Circular dependencies between packages
-- Direct database access from controllers
 - Service-to-service circular dependencies

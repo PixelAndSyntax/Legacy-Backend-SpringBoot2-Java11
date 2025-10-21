@@ -3,13 +3,13 @@
 <!--
 SYNC IMPACT REPORT (2025-10-16):
 - File: optional.md
-- Version: 1.0.0 → 1.0.0 (initial creation from template)
-- Modified Principles: All (initial population)
-- Added Sections: Optional performance and migration-specific standards
-- Removed Sections: None
-- Templates Requiring Updates: None (initial setup)
+- Version: 1.0.0 → 1.1.0 (removed database references)
+- Modified Principles: Performance optimization and migration sections updated
+- Added Sections: None
+- Removed Sections: Database-specific optimizations and migrations
+- Templates Requiring Updates: None
 - Follow-up TODOs: None
-- Impact: Establishes optional enhancement guidelines
+- Impact: Focus on application-layer optimizations only
 -->
 
 <!--
@@ -17,7 +17,7 @@ Section: optional
 Priority: low
 Applies to: performance optimization, migration planning
 Dependencies: [core]
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2025-10-16
 Project: Legacy-Backend-SpringBoot2-Java11
 -->
@@ -26,16 +26,12 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 | Optimization Area      | Guideline                                      | Priority | Impact      |
 | ---------------------- | ---------------------------------------------- | -------- | ----------- |
-| **Database Queries**   | Use JPA query hints for performance tuning     | COULD    | Medium      |
-| Query Optimization     | Analyze slow queries with EXPLAIN              | COULD    | High        |
-| Batch Processing       | Use batch inserts for bulk operations          | COULD    | High        |
 | **Caching Strategy**   | Not implemented (future: Spring Cache)         | COULD    | High        |
-| Second-Level Cache     | Hibernate second-level cache for entities      | COULD    | Medium      |
-| Query Result Cache     | Cache frequent query results                   | COULD    | Medium      |
-| **Connection Pooling** | HikariCP (Spring Boot default)                 | SHOULD   | High        |
-| Pool Size Tuning       | Tune pool size based on load testing           | COULD    | Medium      |
+| Application Cache      | Cache frequent computation results             | COULD    | Medium      |
 | **Async Processing**   | Use @Async for non-blocking operations         | SHOULD   | Medium-High |
 | Thread Pool Sizing     | Configure async executor pool size             | COULD    | Medium      |
+| HTTP Client Pooling    | Configure RestTemplate connection pooling      | SHOULD   | Medium      |
+| JSON Serialization     | Optimize Jackson configuration                 | COULD    | Low         |
 
 ---
 
@@ -152,9 +148,9 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | Benchmark              | Metric                    | Baseline     | Target       |
 | ---------------------- | ------------------------- | ------------ | ------------ |
 | **API Response Time**  | 95th percentile latency   | Not measured | <500ms       |
-| Database Query Time    | Average query execution   | Not measured | <100ms       |
 | **Async Task Execution** | Task completion time    | Not measured | Background   |
 | Memory Usage           | Heap utilization          | Not measured | <512MB       |
+| Thread Pool Efficiency | Active vs idle threads    | Not measured | >80% active  |
 
 **Note**: This baseline project does not include performance benchmarks. Implement performance testing during migration validation.
 
@@ -168,8 +164,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | Security Framework        | Migrate to Spring Security               | MUST     | Large     |
 | **API Documentation**     | Add Swagger/OpenAPI documentation        | COULD    | Medium    |
 | Distributed Tracing       | Add Spring Cloud Sleuth                  | COULD    | Medium    |
-| **Database Migration**    | Add Flyway or Liquibase                  | COULD    | Medium    |
-| Caching Layer             | Add Spring Cache with Redis              | COULD    | Medium    |
+| Caching Layer             | Add Spring Cache abstraction             | COULD    | Medium    |
 | **Integration Tests**     | Expand integration test coverage         | SHOULD   | Medium    |
 | Performance Testing       | Add JMeter or Gatling tests              | COULD    | Large     |
 
@@ -187,7 +182,7 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | Behavioral Equivalence      | Application behavior unchanged           | Verified |
 | **Code Quality**            | No new code quality issues               | 0 new    |
 
-**Current Baseline Status**: 
+**Current Baseline Status**:
 - Build: ✅ SUCCESS
 - Tests: ✅ 5/5 passing
 - Deprecated APIs: ⚠️ Multiple (intentional for testing)

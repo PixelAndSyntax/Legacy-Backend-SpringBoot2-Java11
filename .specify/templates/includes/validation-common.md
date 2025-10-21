@@ -1,3 +1,8 @@
+<!--
+Copyright (c) Github Speckit
+MIT License
+-->
+
 # Shared Validation Steps
 
 This file contains common validation procedures used across multiple prompts.

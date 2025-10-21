@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Copyright (c) [https://github.com/github/spec-kit]
+# Modified by Trentin Barnard, 2025
+# MIT License
+
 # (Moved to scripts/bash/) Common functions and variables for all scripts
 
 get_repo_root() { git rev-parse --show-toplevel; }
@@ -46,7 +50,7 @@ determine_feature() {
     
     if [[ "$feature_count" -eq 0 ]]; then
         echo "ERROR: No features found in $specs_dir" >&2
-        echo "Run @specify first to create a feature specification." >&2
+        echo "Run @sdd-specify first to create a feature specification." >&2
         return 1
     elif [[ "$feature_count" -eq 1 ]]; then
         # Auto-select single feature
@@ -59,7 +63,7 @@ determine_feature() {
         echo "Available features:" >&2
         ls -1 "$specs_dir" 2>/dev/null | sed 's/^/  - /' >&2
         echo "" >&2
-        echo "Usage: @plan <feature-name>, @tasks <feature-name>, or @implement <feature-name>" >&2
+        echo "Usage: @sdd-plan <feature-name>, @sdd-tasks <feature-name>, or @sdd-implement <feature-name>" >&2
         return 1
     fi
 }

@@ -120,7 +120,7 @@ function Get-DeterminedFeature {
     
     if ($featureCount -eq 0) {
         Write-Error "ERROR: No features found in $specsDir"
-        Write-Error "Run @specify first to create a feature specification."
+        Write-Error "Run @sdd-specify first to create a feature specification."
         throw "No features found"
     }
     elseif ($featureCount -eq 1) {
@@ -136,7 +136,7 @@ function Get-DeterminedFeature {
             Write-Error "  - $($_.Name)"
         }
         Write-Error ""
-        Write-Error "Usage: @plan <feature-name>, @tasks <feature-name>, or @implement <feature-name>"
+        Write-Error "Usage: @sdd-plan <feature-name>, @sdd-tasks <feature-name>, or @sdd-implement <feature-name>"
         throw "Multiple features found"
     }
 }

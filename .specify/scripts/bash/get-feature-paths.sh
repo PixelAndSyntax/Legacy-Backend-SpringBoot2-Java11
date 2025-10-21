@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Copyright (c) [https://github.com/github/spec-kit]
+# Modified by Trentin Barnard, 2025
+# MIT License
+
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"

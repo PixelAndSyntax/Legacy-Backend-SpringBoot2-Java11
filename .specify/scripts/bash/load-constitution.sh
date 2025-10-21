@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) [https://github.com/github/spec-kit]
+# Modified by Trentin Barnard, 2025
+# MIT License
+
 # Load Constitution Sections
 # Supports preset loading (backend, frontend, infra, core, testing) or explicit section lists
 

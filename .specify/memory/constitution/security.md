@@ -3,13 +3,13 @@
 <!--
 SYNC IMPACT REPORT (2025-10-16):
 - File: security.md
-- Version: 1.0.0 → 1.0.0 (initial creation from template)
-- Modified Principles: All (initial population)
-- Added Sections: Complete security standards with legacy ACL patterns
-- Removed Sections: None
-- Templates Requiring Updates: None (initial setup)
+- Version: 1.0.0 → 1.1.0 (removed database and CI/CD references)
+- Modified Principles: Data Protection, Secret Management, Vulnerability Management sections updated
+- Added Sections: None
+- Removed Sections: Database-specific security requirements, CI pipeline references
+- Templates Requiring Updates: None
 - Follow-up TODOs: Document ACL migration strategy after Spring Security adoption
-- Impact: Establishes baseline security standards with migration warnings
+- Impact: Focus on application-layer security only
 -->
 
 <!--
@@ -17,7 +17,7 @@ Section: security
 Priority: critical
 Applies to: all projects (especially backend)
 Dependencies: [core]
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2025-10-16
 Project: Legacy-Backend-SpringBoot2-Java11
 -->
@@ -68,14 +68,11 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 | Protection Type           | Requirement                                | Priority | Implementation               |
 | ------------------------- | ------------------------------------------ | -------- | ---------------------------- |
-| **Encryption at Rest**    | Not implemented (H2 in-memory database)    | N/A      | No persistent storage        |
 | **Encryption in Transit** | HTTPS recommended for production           | MUST     | Server configuration         |
 | **PII Handling**          | No PII in logs or error messages           | MUST     | Log review                   |
 | Data Minimization         | Collect only necessary data                | MUST     | API design                   |
-| **Data Classification**   | Not formally classified (demo project)     | N/A      | Future classification        |
-| Secure Deletion           | Not applicable (in-memory database)        | N/A      | No persistent storage        |
-
-**Note**: This baseline project uses H2 in-memory database for demonstration. Production deployments must implement proper data protection.
+| **Data Classification**   | Classify data by sensitivity level         | SHOULD   | Security policy              |
+| Secure Random Generation  | Use `SecureRandom` for all random values   | MUST     | Cryptographic operations     |
 
 ---
 
@@ -86,7 +83,6 @@ Project: Legacy-Backend-SpringBoot2-Java11
 | **Input Validation**     | JSR-303 Bean Validation on all REST inputs    | MUST     | Injection attacks    |
 | @Valid Annotation        | Use @Valid on @RequestBody parameters         | MUST     | Invalid data         |
 | Custom Validators        | Implement ConstraintValidator for business rules | SHOULD   | Business logic bypass |
-| SQL Injection Prevention | Use JPA/Hibernate (no native SQL)             | MUST     | SQL injection        |
 | **Output Encoding**      | Jackson JSON serialization (default escaping) | MUST     | XSS prevention       |
 | XML Output               | JAXB marshalling (safe by default)            | MUST     | XML injection        |
 | **Type Validation**      | Strict type checking on all inputs            | MUST     | Type confusion       |
@@ -106,9 +102,9 @@ Project: Legacy-Backend-SpringBoot2-Java11
 
 | Secret Type              | Requirement                              | Priority | Storage Method           |
 | ------------------------ | ---------------------------------------- | -------- | ------------------------ |
-| **Database Credentials** | Not applicable (H2 in-memory, no auth)   | N/A      | No credentials needed    |
-| **API Keys**             | Not used in baseline                     | N/A      | Future implementation    |
-| **Configuration**        | Environment variables for sensitive config | SHOULD   | Spring @Value or @ConfigurationProperties |
+| **API Keys**             | Store in environment variables           | MUST     | External configuration   |
+| **Configuration**        | Environment variables for sensitive config | MUST     | Spring @Value or @ConfigurationProperties |
+| **Tokens**               | Never hardcode authentication tokens     | MUST     | External configuration   |
 
 ### Secret Prohibitions (WON'T)
 
@@ -117,8 +113,6 @@ Project: Legacy-Backend-SpringBoot2-Java11
 - Never store secrets in plaintext in application.properties
 - Never expose secrets in error messages
 - Never transmit secrets in URLs
-
-**Current Status**: Baseline project has no production secrets. All H2 database configuration is public.
 
 ---
 
@@ -177,7 +171,7 @@ public void addCorsMappings(CorsRegistry registry) {
 | Activity                | Requirement                                | Frequency        | Priority |
 | ----------------------- | ------------------------------------------ | ---------------- | -------- |
 | **Dependency Scanning** | Scan Maven dependencies for CVEs           | Every build      | MUST     |
-| OWASP Dependency Check  | Use OWASP Dependency-Check Maven plugin    | CI pipeline      | SHOULD   |
+| OWASP Dependency Check  | Use OWASP Dependency-Check Maven plugin    | Manual review    | SHOULD   |
 | Vulnerability Patching  | Update vulnerable dependencies promptly    | Within 30 days   | MUST     |
 | **Security Audits**     | Review security architecture               | Before migration | SHOULD   |
 

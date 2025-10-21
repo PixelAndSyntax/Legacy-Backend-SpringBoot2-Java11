@@ -1,3 +1,8 @@
+<!--
+Copyright (c) Github Speckit
+MIT License
+-->
+
 # Implementation Plan: [FEATURE]
 
 **Branch**: `[feature-name]` | **Date**: [DATE] | **Spec**: [link]
